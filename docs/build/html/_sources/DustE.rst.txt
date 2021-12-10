@@ -1,0 +1,22 @@
+DustE package
+=============
+
+Submodules
+----------
+
+DustE.DustAttnCalc module
+-------------------------
+
+.. automodule:: DustE.DustAttnCalc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: DustE
+    :members:
+    :undoc-members:
+    :show-inheritance:
