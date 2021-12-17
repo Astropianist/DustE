@@ -1,0 +1,8 @@
+numpy
+scipy
+matplotlib
+arviz
+astropy
+dynesty
+sedpy
+seaborn

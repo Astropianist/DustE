@@ -3,7 +3,7 @@ Given stellar masses, star formation rates, stellar metallicities, redshifts, ax
 Author: Gautam Nagaraj--gxn75@psu.edu
 """
 
-__all__ = ["regular_grid_interp_scipy","mass_completeness","get_dust_attn_curve_d2","get_dust_attn_curve_d1","getProspDataBasic","marg_by_post","getTraceInfo","getModelSamplesI","plotDustAttn","plotDust12","DustAttnCalc"]
+__all__ = ["regular_grid_interp_scipy","mass_completeness","get_dust_attn_curve_d2","get_dust_attn_curve_d1","getMargSample","getTraceInfo","getModelSamplesI","plotDustAttn","plotDust12","DustAttnCalc"]
 
 import numpy as np 
 import os.path as op
@@ -97,69 +97,28 @@ def get_dust_attn_curve_d1(wave,d1=1.0):
     """
     return d1*(wave/5500.0)**(-1)
 
-def getProspDataBasic(numsamples=10, numgal=None):
-    """ Get the Prospector posterior samples used to fit the model
-    
-    Parameters
-    ----------
-    numsamples: Integer
-        Number of posterior samples per galaxy; do NOT change from 10 unless you request/have files with larger numbers of samples
-    numgal: Integer
-        Number of galaxies desired; if None, all mass-complete galaxies will be included
-
-    Returns
-    -------
-    obj: Dictionary
-        Posterior samples of Prospector fits of 3D-HST galaxies, including stellar mass, SFR, etc.
-    indfin: Integer array
-        Indices giving locations of mass-complete galaxies (all or subset, depending on numgal)
-    """
-    obj = pickle.load(open("3dhst_samples_%d_inc.pickle"%(numsamples),'rb'))
-    logMavg, ssfravg, incavg, z = np.average(np.log10(obj['stellar_mass']),axis=1), np.average(np.log10(obj['ssfr_100']),axis=1), np.average(obj['inc'],axis=1), obj['z']
-    masscomp = mass_completeness(z) #Get mass complete part of sample
-    cond = np.logical_and.reduce((logMavg>=masscomp,ssfravg>=-12.5,incavg>=0.0,incavg<=1.0)) #Want mass-complete sample with reasonable masses, SFRs, and axis ratios
-    ind = np.where(cond)[0]
-    if numgal==None: numgal = len(z[ind])
-    indfin = np.random.choice(ind,size=numgal,replace=False)
-    return obj, indfin
-
-def marg_by_post(obj,ind,proplist,mins,maxs,numsamples=10,kdesamples=1000,weight_name='pr_bv_1_eff_0'):
-    """ Marginalize over variables not being considered but still in model; given the Monte Carlo nature of the model, this is done by randomly selecting values from the Prospector posterior distributions
+def getMargSample(num=10,bv=1,eff=1):
+    """ Get samples from the Prospector likelihood distribution for proper marginalization
 
     Parameters
     ----------
-    obj, ind: Output of getProspDataBasic
-    proplist: List
-        Variable names over which the marginalization is done; options include 'stellar_mass', 'sfr_100' (current star formation rate), 'log_z_zsun' (stellar metallicity), 'z' (redshift), 'inc' (axis ratio), 'dust1' (birth cloud optical depth), 'dust2' (diffuse dust optical depth), 'tau_eff' (effective dust optical depth)
-    mins, maxs: 1-D Numpy arrays
-        Min, max values of the variables for marginalization; use the DustAttnCalc.get_indep_lims function for suitable limits
-    numsamples: Integer
-        Number of posterior samples per galaxy; do NOT change from 10 unless you request/have files with larger numbers of samples
-    kdesamples: Integer
-        Number of marginalized samples needed
-    weight_name: String
-        Name of weighting in the pickle file; this will be automatically determined in the DustAttnCalc class
-    
+    num: Integer
+        Number of marginal samples desired
+    bv: Boolean
+        Whether or not bivariate case for code is being used
+    eff: Boolean
+        Whether or not single-component dust attenuation model is being used
+
     Returns
     -------
-    Input_arr: Array
-        Random values from the Prospector posterior samples
+    Marg_samples: (5 x num) 2D array
+        Samples from the likelihood distribution to be used for marginalization
     """
-    # prior_prob = np.exp(obj['logp_prior'][ind])
-    input_arr = np.empty((len(proplist),len(ind)*numsamples))
-    cond = np.array([True]*len(ind)*numsamples)
-    for i, prop in enumerate(proplist):
-        if prop=='stellar_mass' or prop=='sfr_100': input_arr[i] = np.log10(obj[prop][ind]).reshape(len(ind)*numsamples)
-        elif prop=='z': input_arr[i] = np.repeat(obj['z'][ind][:,None],numsamples,axis=1).reshape(len(ind)*numsamples)
-        else: input_arr[i] = obj[prop][ind].reshape(len(ind)*numsamples)
-        cond = np.logical_and.reduce((cond,input_arr[i]>=mins[i],input_arr[i]<=maxs[i]))
-    input_arr = input_arr[:,cond]
-    w = obj[weight_name][ind].ravel()[cond]
-    input_arr_mod = np.empty_like(input_arr)
-    for i in range(len(input_arr_mod)):
-        input_arr_mod[i] = resample_equal(input_arr[i],w)
-    inds_rand = np.random.randint(len(input_arr[0]),size=kdesamples)
-    return input_arr_mod[:,inds_rand]
+    fn = 'b%de%d.dat'%(bv,eff)
+    info = np.loadtxt(op.join('Marg',fn))
+    totnum = len(info[0])
+    inds = np.random.choice(totnum,num,replace=False)
+    return info[:,inds]
 
 def getTraceInfo(trace, bivar=False):
     """ Parse the hierarchical Bayesian model trace object in order to get all samples of the model parameters
@@ -319,7 +278,7 @@ def plotDust12(tau1,tau2,img_name,n,wvs,label=None):
 class DustAttnCalc:
     """ Primary mechanism for getting dust attenuation curves """
 
-    def __init__(self,f1=None,f2=None,bv=1,eff=0,samples=50,wv_arr=np.linspace(1500.0,5000.0,501),img_dir_orig='TraceFiles',logM=None,sfr=None,logZ=None,z=None,i=None,d2=None,de=None):
+    def __init__(self,f1=None,f2=None,bv=1,eff=0,samples=50,wv_arr=np.linspace(1500.0,5000.0,501),img_dir_orig='TraceFiles',logM=None,sfr=None,logZ=None,z=None,i=None,d2=None,de=None,nummarg=20):
         """ Initialize the DustAttnCalc Class; independent variables can be passed through files or direct arrays
 
         Parameters
@@ -340,7 +299,8 @@ class DustAttnCalc:
             Name of directory with the trace netcdf and data files: default in the package is TraceFiles
         logM, sfr, logZ, z, i, d2, de: Preferably 1-D (but possibly 2-D) arrays or NoneType (Optional)
             Values of independent variables that you have; any subset is allowed, but d2 and de are reserved for univariate models (for diffuse and effective dust, respectively)
-
+        nummarg: Integer
+            Number of Prospector likelihood samples desired for marginalization purposes
         """
         self.input_file, self.d2_file = f1, f2
         self.bivar, self.effective = bv, eff
@@ -355,6 +315,7 @@ class DustAttnCalc:
         if f2 is not None: self.read_d2_file()
         self.samples, self.wv_arr = samples, wv_arr
         self.img_dir_orig = img_dir_orig
+        self.nummarg = nummarg
         self.make_prop_dict()
         self.label_creation()
 
@@ -448,21 +409,28 @@ class DustAttnCalc:
         prop_list: List of strings
             Names of variables corresponding to indep; options are 'logM' (stellar mass), 'sfr' (current star formation rate), 'logZ' (stellar metallicity), 'z' (redshift), 'i' (inclination), 'd2' (diffuse dust optical depth), 'de' (effective dust optical depth)
         """
-        inds, inds_not, mins_not, maxs_not = self.get_indep(indep,prop_list)
-        self.inds = inds
-        if indep is None or not np.array_equiv(prop_list,self.props): self.indep_samp = np.empty((len(self.props),self.ngal))   
-        else: self.indep_samp = np.empty_like(indep) 
-        if len(inds_not)>0: 
-            obj, indfin = getProspDataBasic()
-            self.indep_samp[inds_not] = marg_by_post(obj, indfin, self.indep_pickle_name[inds_not],mins_not, maxs_not, kdesamples=self.ngal, weight_name=f'pr_bv_{self.bivar}_eff_{self.effective}')
-        for i, prop in enumerate(self.props[inds]):
-            if indep is None: self.indep_samp[inds[i]] = getattr(self,prop+'_arr')
-            else: self.indep_samp[inds[i]] = indep[i]
         trace, xtup = self.getPostModelData()
         ngrid, log_width, taugrid, log_width2, rho = getTraceInfo(trace, bivar=self.bivar)
         if not self.bivar and not self.n: nlim = self.taulim
         else: nlim = self.nlim
-        n_sim, tau_sim, ws, w2s, rs = getModelSamplesI(xtup, self.indep_samp, ngrid, log_width, taugrid, log_width2, rho, nlim=nlim, taulim=self.taulim, return_other=True, numsamp=self.samples)
+        marg_samples = getMargSample(num=self.nummarg, bv=self.bivar, eff=self.effective)
+        inds, inds_not, mins_not, maxs_not = self.get_indep(indep,prop_list)
+        self.inds = inds
+        if indep is None or not np.array_equiv(prop_list,self.props): self.indep_samp = np.empty((len(self.props),self.ngal))   
+        else: self.indep_samp = np.empty_like(indep) 
+        for i, prop in enumerate(self.props[inds]):
+            if indep is None: self.indep_samp[inds[i]] = getattr(self,prop+'_arr')
+            else: self.indep_samp[inds[i]] = indep[i]
+        n_sim, ws = 0., 0.
+        if self.bivar: tau_sim, w2s, rs = 0., 0., 0.
+        else: tau_sim, w2s, rs = None, None, None
+        for i in range(self.nummarg):
+            for ind_not in inds_not: self.indep_samp[ind_not] = marg_samples[ind_not,i]
+            n_simi, tau_simi, wsi, w2si, rsi = getModelSamplesI(xtup, self.indep_samp, ngrid, log_width, taugrid, log_width2, rho, nlim=nlim, taulim=self.taulim, return_other=True, numsamp=self.samples)
+            n_sim += n_simi; ws += wsi
+            if self.bivar: tau_sim += tau_simi; w2s += w2si; rs += rsi
+        n_sim /= self.nummarg; ws /= self.nummarg
+        if self.bivar: tau_sim /= self.nummarg; w2s /= self.nummarg; rs /= self.nummarg
         return n_sim, tau_sim, ws, w2s, rs
 
     def get_d1(self,d2,totnum=1001,tau_sim=None):
