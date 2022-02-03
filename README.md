@@ -22,7 +22,7 @@ A few packages that are available through pip and/or Anaconda are required to ru
 * [Sedpy](https://github.com/bd-j/sedpy)
 
 ## Using the code
-The main functionality of the code comes from the DustAttnCalc class of DustAttnCalc.py. It can be used to calculate and plot dust attenuation curves depending on values of the independent parameters (log stellar mass, log star formation rate, log stellar metallicity, redshift, axis ratio, or even the dust optical depth). Here is an example, with the code situated in Dusty/.
+The main functionality of the code comes from the DustAttnCalc class of DustAttnCalc.py. It can be used to calculate and plot dust attenuation curves depending on values of the independent parameters (log stellar mass, log star formation rate, log stellar metallicity, redshift, axis ratio, or even the dust optical depth). Here is an example, with the code situated in DustE/.
 
         from DustAttnCalc import *
         import numpy as np
