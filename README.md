@@ -20,6 +20,7 @@ A few packages that are available through pip and/or Anaconda are required to ru
 * Seaborn (tested on 0.11.1)
 * Astropy (tested on 4.2)
 * [Sedpy](https://github.com/bd-j/sedpy)
+* [Dynesty](https://dynesty.readthedocs.io)
 
 ## Using the code
 The main functionality of the code comes from the DustAttnCalc class of DustAttnCalc.py. It can be used to calculate and plot dust attenuation curves depending on values of the independent parameters (log stellar mass, log star formation rate, log stellar metallicity, redshift, axis ratio, or even the dust optical depth). Here is an example, with the code situated in DustE/.
