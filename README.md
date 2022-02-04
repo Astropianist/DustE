@@ -23,7 +23,79 @@ A few packages that are available through pip and/or Anaconda are required to ru
 * [Dynesty](https://dynesty.readthedocs.io)
 
 ## Using the code
-The main functionality of the code comes from the DustAttnCalc class of DustAttnCalc.py. It can be used to calculate and plot dust attenuation curves depending on values of the independent parameters (log stellar mass, log star formation rate, log stellar metallicity, redshift, axis ratio, or even the dust optical depth). Here is an example, with the code situated in DustE/.
+The main functionality of the code comes from the DustAttnCalc class of DustAttnCalc.py. It can be used to calculate and plot dust attenuation curves depending on values of the independent parameters (log stellar mass, log star formation rate, log stellar metallicity, redshift, axis ratio, or even the dust optical depth)
+. 
+
+We will now present a few examples to show how the code works. **In all cases, the script (or interactive Python mode) must be in the directory DustE/.**
+
+### Example 1: Calculate dust attenuation parameters for an individual galaxy
+
+Type the following prompt into a terminal (adjust values and add or remove independent variables as necessary). In this case, we provide stellar mass, SFR, and redshift and ask for the bivariate two-component dust model. The code marginalizes over stellar metallicity and axis ratio.
+
+        python DustAttnCalc.py -logM 10.5 -sfr 1.0 -z 1.5 -bv
+
+The result is the following (ignoring extra print statements).
+
+        n, tau_2, tau_1: 0.034 +/- 0.042, 0.789 +/- 0.053, 0.793 +/- 0.055$
+        n vs tau Average Correlation Coefficient rho: 0.310
+
+Note that this can be done in a script or interactive Python window. In subsequent examples, we show possibilities for such scripts.
+
+### Example 2: Calculate birth cloud dust optical depth from diffuse dust optical depth
+
+#### Technique 1: Command-line, file
+
+Place the diffuse dust optical depths into a single-column ascii file with header "d2." We use the sample file Sample_f2.dat (provided). Type the following command into a terminal (and adjust file name as necessary).
+
+        python DustAttnCalc.py -f2 Sample_f2.dat
+
+The result will be the following (ignoring other print statements), corresponding to the eight optical depths in the file:
+
+        Dust1 average values: [0.39312231 0.79425555 0.18963501 0.3586911 1.59415881 2.18774406 2.188264 2.16303121]
+        Dust1 Standard deviations: [0.06190268 0.08047815 0.04678386 0.05974306 0.11096629 0.03208986 0.03214327 0.04680665]
+
+#### Technique 2: Interactive Python or script, arrays
+
+Open up an interactive Python window or write the following lines in a script.
+
+        from DustAttnCalc import *
+        import numpy as np
+        
+        d2 = np.linspace(0.1,2.0,10)
+        dobj = DustAttnCalc()
+        d1sim, _ = dobj.get_d1(d2)
+        d1, d1e = np.average(d1sim, axis=0), np.std(d1sim, axis=0)
+        print("d1 values:", d1)
+        print("d1e values:", d1e)
+
+The result of the print statements, once again, is arrays for birth cloud dust optical depth mean and standard deviation.
+
+        Dust1 average values: [0.11958332 0.29070451 0.50251462 0.73115189 0.98102995 1.25353043 1.57401674 1.86923729 2.12308391 2.18606005]
+        Dust1 Standard deviations: [0.05584508 0.06165037 0.06452066 0.06476246 0.08689269 0.08440908 0.1118049  0.10828458 0.06871685 0.03173608]
+
+### Example 3: Calculate (and plot) dust attenuation curves for multiple galaxies
+
+#### Technique 1: Command-line, file
+
+Place values of independent variables in an ascii file. The possible headers are "logM" (log stellar mass), "sfr" (log SFR), "logZ" (log stellar metallicity in terms of solar), "z" (redshift), "i" (axis ratio b/a), "d2" (diffuse dust optical depth), and "de" (effective dust optical depth). The final two options can be used with the univariate model, in which the optical depth is used to help calculate the attenuation slope. **Note that with the command-line option you can make plots and see the attenuation parameter values but will not have direct access to all created arrays.**
+
+We provide Sample_f1.dat as an example for an independent variable file. Type the following line into command line (adjust as necessary for file name). 
+
+        python DustAttnCalc.py -f1 Sample_f1.dat -bv -inb sample_f1 -mnp 2
+
+The result of this command is the text shown below as well as two dust attenuation curve plots sample_f1_00.png and sample_f1_01.png stored in DustAttnCurves/. The two galaxies are randomly chosen from the galaxies in Sample_f1.dat. We discuss plots further and show an example with the second technique.
+
+        n: [-0.01448396 -0.02445773 -0.08416219 -0.16112971 -0.14947119]
+        n error: [0.04381379 0.03916229 0.04458178 0.04609532 0.03906517]
+        tau: [1.12040977 0.35787803 0.80088594 0.49005854 0.47413243]
+        tau error: [0.05402635 0.03848954 0.05236735 0.04381667 0.04813823]
+        tau1: [1.19851961 0.34892385 0.81187079 0.48468084 0.4719089 ]
+        tau1 error: [0.07402834 0.04198751 0.05953972 0.04390203 0.04619509]
+        n vs tau Average Correlation Coefficient rho: 0.310
+
+#### Technique 2: Script/Interactive Python window, arrays
+
+Type the following into a script or interactive Python window.
 
         from DustAttnCalc import *
         import numpy as np
@@ -34,9 +106,9 @@ The main functionality of the code comes from the DustAttnCalc class of DustAttn
         sfr = np.random.uniform(-2.06,2.11,ngal)
         logZ = np.random.uniform(-1.70,0.18,ngal)
         dust_attn = DustAttnCalc(logM=logM, sfr=sfr, logZ=logZ, bv=1, eff=0) # Two-component bivariate dust model (fitting both optical depth and slope) 
-        dac, dac1 = dust_attn.calcDust(plot_tau=True, max_num_plot=5) # This line will calculate the diffuse and birth cloud dust attenuation curves for all 100 galaxies created earlier. It will also produce 5 dust attenuation plots showing both diffuse and birth cloud dust (from the argument plot_tau1=True). The 5 points will be selected randomly from the 100 galaxies created earlier.
+        dac, dac1, n, tau, tau1, n_err, tau_err, tau1_err = dust_attn.calcDust(plot_tau=True, max_num_plot=5) 
         
-As mentioned in the code comments, the code snippet above will measure the dust attenuation curves for 100 galaxies and create 5 plots of diffuse and birth cloud dust, with points taken randomly from the 100 galaxies provided. By default, the images will be stored in a directory called DustAttnCurves and named DustAttnCurve_bv_1_eff_0_0i, with i ranging from 0 to 4. Here is an example of the type of image that would be produced from the code above.
+The last line of the snippet above will calculate samples for the diffuse and birth cloud dust attenuation curves for all 100 galaxies created earlier. For convenience, it will also provide averages and standard deviations for the attenuation parameters. It will also produce 5 dust attenuation plots showing both diffuse and birth cloud dust (from the argument plot_tau1=True). The 5 points will be selected randomly from the 100 galaxies created earlier. By default, the images will be stored in a directory called DustAttnCurves and named DustAttnCurve_bv_1_eff_0_0i, with i ranging from 0 to 4. Here is an example of the type of image that would be produced from the code above.
 
 <p align="center">
   <img src="DustAttnCurve_bv_1_eff_0_01.png" width="650"/>

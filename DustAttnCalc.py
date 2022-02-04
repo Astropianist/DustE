@@ -27,6 +27,30 @@ sns.set_style({"xtick.direction": "in","ytick.direction": "in",
                "ytick.major.size":12, "ytick.minor.size":4,
                })
 
+def parse_args(argv=None):
+    """ Tool to parse arguments from the command line. The entries should be self-explanatory. They include all of the options in the DustAttnCalc class. """
+    parser = ap.ArgumentParser(description="DustAttnCalc",
+                               formatter_class=ap.RawTextHelpFormatter)
+    parser.add_argument('-logM','--logM',help='Log stellar mass of galaxy',type=float,default=None)
+    parser.add_argument('-sfr','--sfr',help='Log SFR of galaxy',type=float,default=None)
+    parser.add_argument('-logZ','--logZ',help='Log stellar metallicity of galaxy',type=float,default=None)
+    parser.add_argument('-z','--z',help='Redshift of galaxy',type=float,default=None)
+    parser.add_argument('-i','--i',help='Axis ratio b/a of galaxy',type=float,default=None)
+    parser.add_argument('-d2','--d2',help='Diffuse dust optical depth of galaxy',type=float,default=None)
+    parser.add_argument('-de','--de',help='Effective dust optical depth of galaxy',type=float,default=None)
+    parser.add_argument('-f1','--f1',help='Name of file with one to five columns with independent variable values',type=str,default=None)
+    parser.add_argument('-f2','--f2',help='Name of file with diffuse dust optical depths in order to get birth cloud dust optical depths',type=str,default=None)
+    parser.add_argument('-pl','--plot',help='Whether or not to plot dust attenuation curve',action='count',default=0)
+    parser.add_argument('-bv','--bivar',help='Whether or not to use bivariate model',action='count',default=0)
+    parser.add_argument('-eff','--effective',help='Whether to use effective dust attenuation (default is diffuse)',action='count',default=0)
+    parser.add_argument('-sa','--samples',help='Number of samples per galaxy desired for dependent variables',type=int,default=50)
+    parser.add_argument('-nm','--nummarg',help='Number of Prospector likelihood samples desired for marginalization purposes',type=int,default=20)
+    parser.add_argument('-mnp','--max_num_plot',help='Maximum number of plots that will be made in a run',type=int,default=10)
+    parser.add_argument('-dir','--img_dir',help='Image directory for created plots (does not have to be created beforehand) ',type=str,default='DustAttnCurves')
+    parser.add_argument('-inb','--img_name_base',help='Image name base (minus extension); each plot made will be numbered on top of the image name base',type=str,default=None)
+
+    return parser.parse_args(args=argv)
+
 def regular_grid_interp_scipy(points, values, coords, *, fill_value=None):
     """Perform a linear interpolation in N-dimensions w a regular grid
     The data must be defined on a filled regular grid, but the spacing may be
@@ -297,7 +321,7 @@ class DustAttnCalc:
             Wavelengths (Angstroms) at which dust attenuation curves should be calculated
         img_dir_orig: String
             Name of directory with the trace netcdf and data files: default in the package is TraceFiles
-        logM, sfr, logZ, z, i, d2, de: Preferably 1-D (but possibly 2-D) arrays or NoneType (Optional)
+        logM, sfr, logZ, z, i, d2, de: 1-D (or possibly 2-D) arrays, Floats, or NoneType (Optional)
             Values of independent variables that you have; any subset is allowed, but d2 and de are reserved for univariate models (for diffuse and effective dust, respectively)
         nummarg: Integer
             Number of Prospector likelihood samples desired for marginalization purposes
@@ -309,11 +333,16 @@ class DustAttnCalc:
         else:
             if self.effective: self.props = np.array(['logM','sfr','logZ','z','de'])
             else: self.props = np.array(['logM','sfr','logZ','z','d2'])
-        self.logM_arr, self.sfr_arr, self.logZ_arr, self.z_arr, self.i_arr = logM, sfr, logZ, z, i
-        self.d2_arr, self.de_arr = d2, de
+        full_arr = [wv_arr, logM, sfr, logZ, z, i, d2, de]
+        full_names = ['wv', 'logM', 'sfr', 'logZ', 'z', 'i', 'd2', 'de']
+        for arr, name in zip(full_arr, full_names):
+            if type(arr)==float or type(arr)==int: val = np.array([arr])
+            elif type(arr)==list: val = np.array(arr)
+            else: val = arr
+            setattr(self,name+'_arr',val)
         if f1 is not None: self.read_indep_file()
         if f2 is not None: self.read_d2_file()
-        self.samples, self.wv_arr = samples, wv_arr
+        self.samples = samples
         self.img_dir_orig = img_dir_orig
         self.nummarg = nummarg
         self.make_prop_dict()
@@ -367,15 +396,17 @@ class DustAttnCalc:
 
     def read_indep_file(self):
         """ Read independent variable file for univariate or bivariate models; called during initialization of DustAttnCalc Class """
-        dat = Table.read(self.input_file)
+        dat = Table.read(self.input_file, format='ascii')
         for prop in self.props:
             if prop in dat.colnames: setattr(self,prop+'_arr',dat[prop])
             else: setattr(self,prop+'_arr',None)
     
     def read_d2_file(self):
         """ Read independent variable file for diffuse dust values which can be used in generating birth cloud dust values; called during initialization of DustAttnCalc Class """
-        dat = Table.read(self.d2_file)
-        self.d2_arr = dat['d2']
+        if self.input_file is None: 
+            dat = Table.read(self.d2_file, format='ascii')
+            self.d2_arr = dat['d2']
+        else: print("Independent file was already defined!")
 
     def get_indep(self,indep=None,prop_list=None):
         """ Figure out which indices are included as independent variables and which ones need to be marginalized over: called by run_dust_modules, the primary method in the class.
@@ -393,6 +424,7 @@ class DustAttnCalc:
                 if indep is None: self.ngal = len(prop_arr)
                 else: self.ngal = len(indep[i])
             else: 
+                print("Marginalizing over %s"%(prop))
                 inds_not.append(i)
                 mins_not.append(mins[prop])
                 maxs_not.append(maxs[prop])
@@ -523,18 +555,22 @@ class DustAttnCalc:
         ------
         dac, dac1: Arrays of same dimension of indep (but different shape); 1st dimension is different samples from the model; 2nd to 2nd last dimension (typically just 1 dimension in total) correspond to the different galaxies; last dimension corresponds to the wavelength array
             Dust attenuation curve as a function of wavelength (set at self.wv_arr, which is set at initialization)
+        navg, d2avg, d1avg: Arrays of average parameter values (n/n_eff, tau_2/tau_eff, and tau1)--dim 2 fewer than dac
+        nerr, d2err, d1err: Arrays of standard deviations of parameter values (n/n_eff, tau_2/tau_eff, and tau1)--dim 2 fewer than dac
+        
+        Note: dac1, d1avg, and d1err will be NoneType if the effective dust model is being used.
         """
         mkpath(img_dir)
         if img_name is None:
             img_name_base = 'DustAttnCurve'
             img_name = f'{img_name_base}_bv_{self.bivar}_eff_{self.effective}'
         img_name_full = op.join(img_dir,img_name)
-        nvals, tauvals, _, _, _ = self.run_dust_modules(indep,prop_list)
+        nvals, tauvals, ws, w2s, rs = self.run_dust_modules(indep,prop_list)
         if not self.bivar: tauvals = np.repeat(self.indep_samp[-1][None,:],len(nvals),axis=0)
         sh = list(nvals.shape); sh.insert(len(sh),len(self.wv_arr)); sh = tuple(sh)
         dac = np.empty(sh)
         if not self.effective: dac1 = np.empty(sh)
-        else: dac1 = None
+        else: dac1, d1avg, d1err = None, None, None
 
         inds = np.random.choice(len(nvals[0]),min(max_num_plot,len(nvals[0])),replace=False)
         if not self.effective:
@@ -552,8 +588,19 @@ class DustAttnCalc:
                 label += self.indep_lab[indprop] + r'$=%.2f$; '%(self.indep_samp[indprop,ind])
             if plot_tau and self.effective: plotDustAttn(nvals[:,ind],tauvals[:,ind],img_name_full+'%02d'%(i),self.wv_arr,self.effective,label)
             if plot_tau and not self.effective: plotDust12(d1vals[:,ind],tauvals[:,ind],img_name_full+'_%02d'%(i),nvals[:,ind],self.wv_arr,label)
-
-        return dac, dac1
+        navg, tauavg = np.average(nvals, axis=0), np.average(tauvals, axis=0)
+        nerr, tauerr = np.std(nvals, axis=0), np.std(tauvals, axis=0)
+        if not self.effective: d1avg, d1err = np.average(d1vals, axis=0), np.std(d1vals, axis=0)
+        if navg.size==1:
+            if self.effective: print(r"n_eff, tau_eff: %.3f +/- %.3f, %.3f +/- %.3f"%(navg[0],nerr[0],tauavg[0],tauerr[0]))
+            else: print(r"n, tau_2, tau_1: %.3f +/- %.3f, %.3f +/- %.3f, %.3f +/- %.3f$"%(navg[0],nerr[0],tauavg[0],tauerr[0],d1avg[0],d1err[0]))
+        else:
+            print("n:", navg); print("n error:", nerr)
+            print("tau:", tauavg); print("tau error:", tauerr)
+            if not self.effective: 
+                print("tau1:", d1avg); print("tau1 error:", d1err)
+        if self.bivar: print(r"n vs tau Average Correlation Coefficient rho: %0.3f"%(np.average(rs)))
+        return dac, dac1, navg, tauavg, d1avg, nerr, tauerr, d1err
                 
     def get_indep_lims(self):
         """ Print and return reasonable mins and maxs for independent parameters """
@@ -599,3 +646,14 @@ class DustAttnCalc:
         else:  
             weight = like*n_wid
         return weight
+
+if __name__=='__main__':
+    args = parse_args()
+    dobj = DustAttnCalc(f1=args.f1, f2=args.f2, bv=args.bivar, eff=args.effective, samples=args.samples, logM=args.logM, sfr=args.sfr, logZ=args.logZ, z=args.z, i=args.i, d2=args.d2, de=args.de, nummarg=args.nummarg)
+    if args.f1 is None and args.f2 is not None: 
+        d1sim, _ = dobj.get_d1(dobj.d2_arr)
+        d1, d1e = np.average(d1sim,axis=0), np.std(d1sim,axis=0)
+        print("Dust1 average values:", d1)
+        print("Dust1 Standard deviations:", d1e)
+    else: 
+        dac, dac1, n, tau, tau1, ne, taue, tau1e = dobj.calcDust(img_dir=args.img_dir, max_num_plot=args.max_num_plot, plot_tau=args.plot, img_name=args.img_name_base)
