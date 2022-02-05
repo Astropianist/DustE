@@ -36,7 +36,7 @@ Type the following prompt into a terminal (adjust values and add or remove indep
 
 The result is the following (ignoring extra print statements).
 
-        n, tau_2, tau_1: 0.034 +/- 0.042, 0.789 +/- 0.053, 0.793 +/- 0.055$
+        n, tau_2, tau_1: 0.034 +/- 0.042, 0.789 +/- 0.053, 0.793 +/- 0.055
         n vs tau Average Correlation Coefficient rho: 0.310
 
 Note that this can be done in a script or interactive Python window. In subsequent examples, we show possibilities for such scripts.
