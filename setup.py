@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="DustE",                     # This is the name of the package
-    version="0.0.1",                        # The initial release version
+    version="0.0.2",                        # The initial release version
     author="Gautam Nagaraj",                     # Full name of the author
     author_email="gxn75@psu.edu",
     description="Calculate dust attenuation curves as function of physical properties",
@@ -22,7 +22,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Astronomy"
     ],                                      # Information to filter the project on PyPi website
     license='MIT',
-    package_data={"": ["README.md", "LICENSE"], "duste": ["Marg/*.dat", "TraceFiles/*.dat", "TraceFiles/*.nc"]},
+    package_data={"": ["README.md", "LICENSE", "DustAttnCurve_bv_1_eff_0_01.png"], "duste": ["Marg/*.dat", "TraceFiles/*.dat", "TraceFiles/*.nc"]},
     include_package_data=True,
     python_requires='>=3.6',                # Minimum version requirement of the package
     install_requires=["numpy","scipy","matplotlib","seaborn","astropy","arviz==0.11.2","astro-sedpy", "dynesty"]  # Install other dependencies if any
