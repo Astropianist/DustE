@@ -23,12 +23,16 @@ We created hierarchical/population Bayesian models for dust attenuation, which a
 
 The two-component model, inspired by the great success of the [Charlot & Fall (2000)](https://ui.adsabs.harvard.edu/abs/2000ApJ...539..718C/abstract) model in describing real galaxies, is used by Prospector in SED fitting. The model considers that the light from stars passes through either one or two dust screens in front of the galaxy. Light from stars under 10 Myr old pass through both screens (diffuse and birth cloud dust) whereas light from all other stars pass through only the diffuse dust screen. The birth cloud dust attenuation curve is treated as a simple inverse law with the normalization optical depth at 550 nm. The diffuse dust attenuation curve is parameterized in the form used by [Noll et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009A%26A...507.1793N/abstract) and [Kriek & Conroy (2013)](https://ui.adsabs.harvard.edu/abs/2013ApJ...775L..16K/abstract), which is a flexible generalization of the [Calzetti et al. (2000)](https://ui.adsabs.harvard.edu/abs/2000ApJ...533..682C/abstract) curve. We use this same parameterization for the effective dust curve as well. For the effective dust attenuation case, there is simply one dust screen that affects all stars regardless of age.
 ## Installation
-To install the package, open terminal in the directory where you would like the code to be placed and type
+To install the package, simply type the following command in terminal.
+
+        pip install DustE
+
+Alternately (not as recommended), open terminal in the directory where you would like the code to be placed and type
         
         git clone https://github.com/Astropianist/DustE.git
 
 ### Dependencies
-A few packages that are available through pip and/or Anaconda are required to run the code.
+A few packages that are available through pip and/or Anaconda are required to run the code. **The pip install command above should take care of all of the dependencies, so no extra work is needed.**
 
 * NumPy (tested on 1.20.0)
 * SciPy (tested on 1.6.0)
@@ -43,11 +47,11 @@ A few packages that are available through pip and/or Anaconda are required to ru
 The main functionality of the code comes from the DustAttnCalc class of DustAttnCalc.py. It can be used to calculate and plot dust attenuation curves depending on values of the independent parameters (log stellar mass, log star formation rate, log stellar metallicity, redshift, axis ratio, or even the dust optical depth)
 . 
 
-We will now present a few examples to show how the code works. **In all cases, the script (or interactive Python mode) must be in the directory DustE/.**
+We will now present a few examples to show how the code works. **We assume that DustE is installed through pip. However, the command-line mode (python DustAttnCalc.py) versions can only be done in the subdirectory where DustAttnCalc.py is located.**
 
 ### Example 1: Calculate dust attenuation parameters for an individual galaxy
 
-Type the following prompt into a terminal (adjust values and add or remove independent variables as necessary). In this case, we provide stellar mass, SFR, and redshift and ask for the bivariate two-component dust model. The code marginalizes over stellar metallicity and axis ratio.
+Type the following prompt into a terminal (adjust values and add or remove independent variables as necessary). Once again, for this particular example, you must be in the subdirectory where DustAttnCalc.py is located. In this case, we provide stellar mass, SFR, and redshift and ask for the bivariate two-component dust model. The code marginalizes over stellar metallicity and axis ratio.
 
         python DustAttnCalc.py -logM 10.5 -sfr 1.0 -z 1.5 -bv
 
@@ -62,7 +66,7 @@ Note that this can be done in a script or interactive Python window. In subseque
 
 #### Technique 1: Command-line, file
 
-Place the diffuse dust optical depths into a single-column ascii file with header "d2." We use the sample file Sample_f2.dat (provided). Type the following command into a terminal (and adjust file name as necessary).
+Place the diffuse dust optical depths into a single-column ascii file with header "d2." We use the sample file Sample_f2.dat (provided). Type the following command into a terminal (and adjust file name as necessary). Just to reiterate, to be able to use command-line mode, you must be in the same subdirectory as DustAttnCalc.py.
 
         python DustAttnCalc.py -f2 Sample_f2.dat
 
@@ -73,9 +77,9 @@ The result will be the following (ignoring other print statements), correspondin
 
 #### Technique 2: Interactive Python or script, arrays
 
-Open up an interactive Python window or write the following lines in a script.
+Open up an interactive Python window or write the following lines in a script (any directory).
 
-        from DustAttnCalc import *
+        from duste.DustAttnCalc import DustAttnCalc
         import numpy as np
         
         d2 = np.linspace(0.1,2.0,10)
@@ -96,7 +100,7 @@ The result of the print statements, once again, is arrays for birth cloud dust o
 
 Place values of independent variables in an ascii file. The possible headers are "logM" (log stellar mass), "sfr" (log SFR), "logZ" (log stellar metallicity in terms of solar), "z" (redshift), "i" (axis ratio b/a), "d2" (diffuse dust optical depth), and "de" (effective dust optical depth). The final two options can be used with the univariate model, in which the optical depth is used to help calculate the attenuation slope. **Note that with the command-line option you can make plots and see the attenuation parameter values but will not have direct access to all created arrays.**
 
-We provide Sample_f1.dat as an example for an independent variable file. Type the following line into command line (adjust as necessary for file name). 
+We provide Sample_f1.dat as an example for an independent variable file (located in DustE/src/duste). Type the following line into command line (adjust as necessary for file name). 
 
         python DustAttnCalc.py -f1 Sample_f1.dat -bv -inb sample_f1 -mnp 2
 
@@ -112,9 +116,9 @@ The result of this command is the text shown below as well as two dust attenuati
 
 #### Technique 2: Script/Interactive Python window, arrays
 
-Type the following into a script or interactive Python window.
+Type the following into a script or interactive Python window (any directory).
 
-        from DustAttnCalc import *
+        from duste.DustAttnCalc import DustAttnCalc
         import numpy as np
         
         ngal = 100 # Number of galaxies to use

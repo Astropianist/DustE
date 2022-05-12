@@ -2,3 +2,7 @@ numpy
 scipy
 matplotlib
 seaborn
+astropy
+arviz==0.11.2
+astro-sedpy
+dynesty

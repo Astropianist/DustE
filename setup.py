@@ -25,5 +25,5 @@ setuptools.setup(
     package_data={"": ["README.md", "LICENSE"], "duste": ["Marg/*.dat", "TraceFiles/*.dat", "TraceFiles/*.nc"]},
     include_package_data=True,
     python_requires='>=3.6',                # Minimum version requirement of the package
-    install_requires=["numpy","scipy","matplotlib","seaborn"]                     # Install other dependencies if any
+    install_requires=["numpy","scipy","matplotlib","seaborn","astropy","arviz==0.11.2","astro-sedpy", "dynesty"]  # Install other dependencies if any
 )

@@ -15,7 +15,7 @@ Alternately (not as recommended), open terminal in the directory where you would
         git clone https://github.com/Astropianist/DustE.git
 
 ### Dependencies
-A few packages that are available through pip and/or Anaconda are required to run the code.
+A few packages that are available through pip and/or Anaconda are required to run the code. **The pip install command above should take care of all of the dependencies, so no extra work is needed.**
 
 * NumPy (tested on 1.20.0)
 * SciPy (tested on 1.6.0)
