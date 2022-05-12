@@ -22,7 +22,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Astronomy"
     ],                                      # Information to filter the project on PyPi website
     license='MIT',
-    package_data={"": ["README.md", "LICENSE"]},
+    package_data={"": ["README.md", "LICENSE"], "duste": ["Marg/*.dat", "TraceFiles/*.dat", "TraceFiles/*.nc"]},
     include_package_data=True,
     python_requires='>=3.6',                # Minimum version requirement of the package
     install_requires=["numpy","scipy","matplotlib","seaborn"]                     # Install other dependencies if any

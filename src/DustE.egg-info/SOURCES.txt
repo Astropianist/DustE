@@ -8,3 +8,17 @@ src/DustE.egg-info/requires.txt
 src/DustE.egg-info/top_level.txt
 src/duste/DustAttnCalc.py
 src/duste/__init__.py
+src/duste/Marg/b0e0.dat
+src/duste/Marg/b0e1.dat
+src/duste/Marg/b1e0.dat
+src/duste/Marg/b1e1.dat
+src/duste/TraceFiles/Interp_dust1_dust2_d1_d2_mapv2_-1_20_dlw_-1.0_eff_0_20_HB.dat
+src/duste/TraceFiles/Interp_logM_logSFR_logZ_z_axis_ratio_n_dust2_msfrlogZzin_d2_map_jp_new_-1_3125_dlw_0.0_eff_0_3125_HB.dat
+src/duste/TraceFiles/Interp_logM_logSFR_logZ_z_axis_ratio_n_dust2_msfrlogZzin_d2_map_jp_new_-1_3125_dlw_0.0_eff_1_3125_HB.dat
+src/duste/TraceFiles/Interp_logM_logSFR_logZ_z_dust2_n_msfrlogZzd2_n_map_jp_new_-1_3125_dlw_0.0_eff_0_3125_HB.dat
+src/duste/TraceFiles/Interp_logM_logSFR_logZ_z_duste_ne_msfrlogZzde_n_map_jp_new_-1_3125_dlw_0.0_eff_1_3125_HB.dat
+src/duste/TraceFiles/trace_int_dust1_dust2_d1_d2_mapv2_-1_20_dlw_-1.0_eff_0_20.nc
+src/duste/TraceFiles/trace_int_logM_logSFR_logZ_z_axis_ratio_n_dust2_msfrlogZzin_d2_map_jp_new_-1_3125_dlw_0.0_eff_0_3125_small.nc
+src/duste/TraceFiles/trace_int_logM_logSFR_logZ_z_axis_ratio_n_dust2_msfrlogZzin_d2_map_jp_new_-1_3125_dlw_0.0_eff_1_3125_small.nc
+src/duste/TraceFiles/trace_int_logM_logSFR_logZ_z_dust2_n_msfrlogZzd2_n_map_jp_new_-1_3125_dlw_0.0_eff_0_3125_small.nc
+src/duste/TraceFiles/trace_int_logM_logSFR_logZ_z_duste_ne_msfrlogZzde_n_map_jp_new_-1_3125_dlw_0.0_eff_1_3125_small.nc

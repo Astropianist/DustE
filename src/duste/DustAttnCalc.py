@@ -12,13 +12,14 @@ from scipy.stats import truncnorm
 import arviz as az
 import argparse as ap
 from glob import glob
+import fnmatch
 from astropy.table import Table
-import pickle
 from distutils.dir_util import mkpath
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from scipy.interpolate import RegularGridInterpolator as RGIScipy
 from dynesty.utils import resample_equal
+import pkg_resources
 import seaborn as sns
 sns.set_style("ticks")
 sns.set_style({"xtick.direction": "in","ytick.direction": "in",
@@ -139,7 +140,11 @@ def getMargSample(num=10,bv=1,eff=1):
         Samples from the likelihood distribution to be used for marginalization
     """
     fn = 'b%de%d.dat'%(bv,eff)
-    info = np.loadtxt(op.join('Marg',fn))
+    try:
+        stream = pkg_resources.resource_filename('duste',op.join('Marg',fn))
+    except:
+        stream = op.join('Marg',fn)
+    info = np.loadtxt(stream)
     totnum = len(info[0])
     inds = np.random.choice(totnum,num,replace=False)
     return info[:,inds]
@@ -512,18 +517,24 @@ class DustAttnCalc:
         xtup: List of arrays
             Unique values of coordinates of grid points in each parameter dimension used in the given hierarchical Bayesian model; the true grid is created using np.meshgrid(*xtup)
         """
-        globsearch = op.join(self.img_dir_orig,'*%s*eff_%d*.nc'%(self.extratext,self.effective))
-        nclist = glob(globsearch)
-        if len(nclist)==0:
-            print("No netcdf file found in glob search",globsearch)
-            return
-        if len(nclist)>1:
-            print("Multiple files or directories found in search",globsearch)
-            return
-        trace = az.from_netcdf(nclist[0])
-        print("Trace file:", nclist[0])
-        globsearch = op.join(self.img_dir_orig,'*%s*eff_%d*.dat'%(self.extratext,self.effective))
-        datf = glob(globsearch)[0]
+        try:
+            globsearch = '*%s*eff_%d*.nc'%(self.extratext,self.effective)
+            dirinfo = pkg_resources.resource_listdir('duste',self.img_dir_orig)
+            nclist_orig = fnmatch.filter(dirinfo,globsearch)[0]
+            nclist = pkg_resources.resource_filename('duste',op.join(self.img_dir_orig,nclist_orig))
+        except:
+            globsearch = op.join(self.img_dir_orig,'*%s*eff_%d*.nc'%(self.extratext,self.effective))
+            nclist = glob(globsearch)[0]
+        trace = az.from_netcdf(nclist)
+        print("Trace file:", nclist)
+        try:
+            globsearch = '*%s*eff_%d*.dat'%(self.extratext,self.effective)
+            dirinfo = pkg_resources.resource_listdir('duste',self.img_dir_orig)
+            datf_orig = fnmatch.filter(dirinfo,globsearch)[0]
+            datf = pkg_resources.resource_filename('duste',op.join(self.img_dir_orig,datf_orig))
+        except:
+            globsearch = op.join(self.img_dir_orig,'*%s*eff_%d*.dat'%(self.extratext,self.effective))
+            datf = glob(globsearch)[0]
         dat = Table.read(datf,format='ascii')
         print("Dat file:",datf)
         ndim = len(self.indep_name)
