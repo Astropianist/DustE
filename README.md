@@ -110,17 +110,24 @@ Type the following into a script or interactive Python window (any directory).
         sfr = np.random.uniform(-2.06,2.11,ngal)
         logZ = np.random.uniform(-1.70,0.18,ngal)
         dust_attn = DustAttnCalc(logM=logM, sfr=sfr, logZ=logZ, bv=1, eff=0) # Two-component bivariate dust model (fitting both optical depth and slope) 
-        dac, dac1, n, tau, tau1, n_err, tau_err, tau1_err = dust_attn.calcDust(plot_tau=True, max_num_plot=5) 
+        dac, dac1, n, tau, tau1, n_err, tau_err, tau1_err = dust_attn.calcDust(plot_tau=True, max_num_plot=5)
+        wv = dust_attn.wv_arr # Get the wavelength array used for computing the attenuation curve
         
-The last line of the snippet above will calculate samples for the diffuse and birth cloud dust attenuation curves for all 100 galaxies created earlier. For convenience, it will also provide averages and standard deviations for the attenuation parameters. It will also produce 5 dust attenuation plots showing both diffuse and birth cloud dust (from the argument plot_tau1=True). The 5 points will be selected randomly from the 100 galaxies created earlier. By default, the images will be stored in a directory called DustAttnCurves and named DustAttnCurve_bv_1_eff_0_0i, with i ranging from 0 to 4. Here is an example of the type of image that would be produced from the code above.
+The 2nd last line of the snippet above will calculate samples for the diffuse and birth cloud dust attenuation curves for all 100 galaxies created earlier (dac and dac1, respectively). For convenience, it will also provide averages and standard deviations for the attenuation parameters (n, tau, tau1 and the corresponding err terms). It will also produce 5 dust attenuation plots showing both diffuse and birth cloud dust (from the argument plot_tau1=True). The 5 points will be selected randomly from the 100 galaxies created earlier. By default, the images will be stored in a directory called DustAttnCurves and named DustAttnCurve_bv_1_eff_0_0i, with i ranging from 0 to 4. Here is an example of the type of image that would be produced from the code above.
 
 <p align="center">
   <img src="DustAttnCurve_bv_1_eff_0_01.png" width="650"/>
 </p>
 
+Here, we simply provide a little more detail about the outputs of the calcDust function. First, dac and dac1 are 3-D arrays. The first dimension is all of the samples of curves (taking into account errors, essentially). If you want to simply use the mean attenuation curve for a galaxy, you can make the following arrays.
+
+        dac_avg, dac1_avg = np.average(dac, axis=0), np.average(dac1, axis=0)
+        
+The 2nd dimension is all of the galaxies. For example, index of 2 in the 2nd dimension refers to the 3rd galaxy in the sample. The 3rd dimension is the actual attenuation curve for the galaxies in the sample. The corresponding wavelengths are given by wv = dust_attn.wv_arr (the last line of the code snippet). The convenience arrays n, tau, and tau1, as well as the corresponding error terms are simply 1-D arrays with a single average value for each galaxy (for that parameter).
+
 ### Example 3.1: Calculate (and plot) effective dust attenuation curves for multiple galaxies
 
-We will closely follow the previous example's technique 2 and explore the effective dust attenuation curve. In all of the examples so far, we have calculated both diffuse and birth cloud dust attenuation curves. However, if you do not have any information about the specifically younger constituents in a host galaxy, it may be simpler to use the single screen model. 
+We will closely follow the previous example's technique 2 and explore the effective dust attenuation curve. In all of the examples so far, we have calculated both diffuse and birth cloud dust attenuation curves. However, if you do not have any information about the specifically younger constituents in a host galaxy, it may be simpler and/or better to use the single screen model. 
 
         from duste.DustAttnCalc import DustAttnCalc
         import numpy as np
@@ -132,6 +139,7 @@ We will closely follow the previous example's technique 2 and explore the effect
         logZ = np.random.uniform(-1.70,0.18,ngal)
         dust_attn = DustAttnCalc(logM=logM, sfr=sfr, logZ=logZ, bv=1, eff=1) # One-component (effective) bivariate dust model (fitting both optical depth and slope) 
         dac, _, n, tau, _, n_err, tau_err, _ = dust_attn.calcDust(plot_tau=True, max_num_plot=5)
+        wv = dust_attn.wv_arr # Get the wavelength array used for computing the attenuation curve
         
 Notice that the source code is nearly identical to the previous example. In this case, though, we change "eff=0" to "eff=1" when creating the attenuation curve. The only difference is that dac1, tau1, and tau1_err (outputs of calcDust) are None, so we can disregard them. Similarly, dac, n, tau, n_err, and tau_err refer to the parameters of the effective dust screen rather than diffuse dust. The plot below is an example of the type of image that would be produced from the code above.
 
