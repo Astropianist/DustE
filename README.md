@@ -130,7 +130,7 @@ We will closely follow the previous example's technique 2 and explore the effect
         logM = np.random.uniform(8.74,11.30,ngal)
         sfr = np.random.uniform(-2.06,2.11,ngal)
         logZ = np.random.uniform(-1.70,0.18,ngal)
-        dust_attn = DustAttnCalc(logM=logM, sfr=sfr, logZ=logZ, bv=1, eff=1) # Two-component bivariate dust model (fitting both optical depth and slope) 
+        dust_attn = DustAttnCalc(logM=logM, sfr=sfr, logZ=logZ, bv=1, eff=1) # One-component (effective) bivariate dust model (fitting both optical depth and slope) 
         dac, _, n, tau, _, n_err, tau_err, _ = dust_attn.calcDust(plot_tau=True, max_num_plot=5)
         
 Notice that the source code is nearly identical to the previous example. In this case, though, we change "eff=0" to "eff=1" when creating the attenuation curve. The only difference is that dac1, tau1, and tau1_err (outputs of calcDust) are None, so we can disregard them. Similarly, dac, n, tau, n_err, and tau_err refer to the parameters of the effective dust screen rather than diffuse dust. The plot below is an example of the type of image that would be produced from the code above.
