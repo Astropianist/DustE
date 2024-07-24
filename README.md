@@ -2,7 +2,7 @@
 Calculate dust attenuation curves for various configurations of physical properties of galaxies like stellar mass, star formation rates, and metallicities. This code is designed with theorists in mind: by supplying lists of non-dust properties as mentioned above, they can get state-of-the-art estimates for the dust properties of their simulated galaxies. Of course, observers can also compare their findings to our models, which will be a useful validation process. 
 
 ## Background
-We created hierarchical/population Bayesian models for dust attenuation, which are described in Nagaraj+22a (submitted). Using Prospector spectral energy distribution (SED) fitting posterior samples for nearly 30,000 galaxies in a mass-complete 3D-HST (http://3dhst.research.yale.edu/Home.html) sample ([Leja et al. 2017](https://ui.adsabs.harvard.edu/abs/2017ApJ...837..170L/abstract), [2019](https://ui.adsabs.harvard.edu/abs/2019ApJ...877..140L/abstract), [2020](https://ui.adsabs.harvard.edu/abs/2020ApJ...893..111L/abstract)), we fit a linear interpolation function in five dimensions in order to determine how the dust attenuation curve varies over physical properties like stellar mass and star formation rate. As a result, we have created four models that are available for the user. We have both two-component (diffuse and birth cloud) and single-component (effective) dust attenuation model options. In the case of the two-component models, the birth cloud dust optical depth is modeled as a 1-D interpolation function of diffuse dust optical depth, which we provide in the form of a convenience function get_d1 (method of the DustAttnCalc class, see below). For diffuse dust and effective dust, we have a model that predicts both the dust optical depth and slope of the attenuation curve as well as a model that requires dust optical depth as an input to calculate the slope of the attenuation curve. The model of choice can be chosen through Boolean options for the DustAttnCalc class instance
+We created hierarchical/population Bayesian models for dust attenuation, which are described in ([Nagaraj et al. 2022](https://ui.adsabs.harvard.edu/abs/2022ApJ...932...54N/abstract)). Using Prospector spectral energy distribution (SED) fitting posterior samples for nearly 30,000 galaxies in a mass-complete 3D-HST (http://3dhst.research.yale.edu/Home.html) sample ([Leja et al. 2017](https://ui.adsabs.harvard.edu/abs/2017ApJ...837..170L/abstract), [2019](https://ui.adsabs.harvard.edu/abs/2019ApJ...877..140L/abstract), [2020](https://ui.adsabs.harvard.edu/abs/2020ApJ...893..111L/abstract)), we fit a linear interpolation function in five dimensions in order to determine how the dust attenuation curve varies over physical properties like stellar mass and star formation rate. As a result, we have created four models that are available for the user. We have both two-component (diffuse and birth cloud) and single-component (effective) dust attenuation model options. In the case of the two-component models, the birth cloud dust optical depth is modeled as a 1-D interpolation function of diffuse dust optical depth, which we provide in the form of a convenience function get_d1 (method of the DustAttnCalc class, see below). For diffuse dust and effective dust, we have a model that predicts both the dust optical depth and slope of the attenuation curve as well as a model that requires dust optical depth as an input to calculate the slope of the attenuation curve. The model of choice can be chosen through Boolean options for the DustAttnCalc class instance
 
 The two-component model, inspired by the great success of the [Charlot & Fall (2000)](https://ui.adsabs.harvard.edu/abs/2000ApJ...539..718C/abstract) model in describing real galaxies, is used by Prospector in SED fitting. The model considers that the light from stars passes through either one or two dust screens in front of the galaxy. Light from stars under 10 Myr old pass through both screens (diffuse and birth cloud dust) whereas light from all other stars pass through only the diffuse dust screen. The birth cloud dust attenuation curve is treated as a simple inverse law with the normalization optical depth at 550 nm. The diffuse dust attenuation curve is parameterized in the form used by [Noll et al. (2009)](https://ui.adsabs.harvard.edu/abs/2009A%26A...507.1793N/abstract) and [Kriek & Conroy (2013)](https://ui.adsabs.harvard.edu/abs/2013ApJ...775L..16K/abstract), which is a flexible generalization of the [Calzetti et al. (2000)](https://ui.adsabs.harvard.edu/abs/2000ApJ...533..682C/abstract) curve. We use this same parameterization for the effective dust curve as well. For the effective dust attenuation case, there is simply one dust screen that affects all stars regardless of age.
 ## Installation
@@ -17,12 +17,12 @@ Alternately (not as recommended), open terminal in the directory where you would
 ### Dependencies
 A few packages that are available through pip and/or Anaconda are required to run the code. **The pip install command above should take care of all of the dependencies, so no extra work is needed.**
 
-* NumPy (tested on 1.20.0)
-* SciPy (tested on 1.6.0)
-* ArViz (tested on 0.11.2)
-* Matplotlib (tested on 3.4.2)
-* Seaborn (tested on 0.11.1)
-* Astropy (tested on 4.2)
+* NumPy (tested on 2.0.1)
+* SciPy (tested on 1.14.0)
+* ArViz (tested on 0.19.0)
+* Matplotlib (tested on 3.9.1)
+* Seaborn (tested on 0.13.2)
+* Astropy (tested on 6.1.2)
 * [Sedpy](https://github.com/bd-j/sedpy)
 * [Dynesty](https://dynesty.readthedocs.io)
 
