@@ -5,9 +5,9 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="DustE",                     # This is the name of the package
-    version="0.0.2",                        # The initial release version
+    version="0.0.3",                        # Release version
     author="Gautam Nagaraj",                     # Full name of the author
-    author_email="gxn75@psu.edu",
+    author_email="gmanagaraj@gmail.com",
     description="Calculate dust attenuation curves as function of physical properties",
     project_urls={"Source repo": "https://github.com/Astropianist/DustE"},
     long_description=long_description,      # Long description read from the the readme file
